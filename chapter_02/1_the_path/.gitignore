@@ -1,0 +1,7 @@
+.DS_Store
+**/.DS_Store
+packages
+web/packages
+web/application.js*
+web/application.*.js
+build

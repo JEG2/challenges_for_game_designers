@@ -1,0 +1,4 @@
+name: the_path
+description: An exercise playing with a Race to the End dynamic.
+dependencies:
+  browser: any
