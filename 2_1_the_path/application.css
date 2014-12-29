@@ -1,0 +1,13 @@
+html, body {
+    margin:  0px;
+    padding: 0px;
+}
+
+body {
+    background-color: black;
+}
+
+#game {
+    display: block;
+    margin:  0px auto;
+}
