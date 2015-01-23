@@ -2,4 +2,4 @@
 
 require_relative "../lib/da_bomb"
 
-DaBomb.play
+DaBomb.play(ARGV.any? { |arg| arg =~ /\A(?:-e|--easy)\z/ })

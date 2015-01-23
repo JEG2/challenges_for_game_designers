@@ -19,6 +19,18 @@ module DaBomb
       ?q     => :quit,
       ?\C-c  => :interrupt
     }
+    MOVERS   = {
+      north: ->(x, y) { [x,     y - 1] },
+      east:  ->(x, y) { [x + 1, y]     },
+      south: ->(x, y) { [x,     y + 1] },
+      west:  ->(x, y) { [x - 1, y]     }
+    }
+    CROSS_DIRECTIONS = {
+      north: %i[east  west],
+      east:  %i[north south],
+      south: %i[east  west],
+      west:  %i[north south]
+    }
 
     include Container
 
@@ -39,6 +51,33 @@ module DaBomb
     def update
       command = COMMANDS[keyboard.get_character]
       send(command) if command
+    end
+
+    def visible_xys
+      visible = { }
+
+      (-1..1).each do |x_offset|
+        (-1..1).each do |y_offset|
+          visible[[x + x_offset, y + y_offset]] = true
+        end
+      end
+
+      last_xy = [x, y]
+      5.times do |i|
+        new_xy          = MOVERS[facing].call(*last_xy)
+        visible[new_xy] = true
+        CROSS_DIRECTIONS[facing].each do |dir|
+          cross_xy = new_xy
+          i.times do
+            new_cross_xy          = MOVERS[dir].call(*cross_xy)
+            visible[new_cross_xy] = true
+            cross_xy              = new_cross_xy
+          end
+        end
+        last_xy = new_xy
+      end
+
+      visible
     end
 
     def to_s

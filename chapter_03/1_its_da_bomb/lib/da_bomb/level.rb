@@ -7,12 +7,13 @@ module DaBomb
   class Level
     TIMER = 300
 
-    def initialize(game, number = 1)
-      @game    = game
-      @number  = 1
-      @grid    = nil
-      @player  = nil
-      @message = nil
+    def initialize(game, number: 1, easy_mode: false)
+      @game      = game
+      @number    = 1
+      @easy_mode = easy_mode
+      @grid      = nil
+      @player    = nil
+      @message   = nil
 
       parse_level
     end
@@ -21,6 +22,10 @@ module DaBomb
 
     attr_reader :game, :number, :grid, :player
     private     :game, :number, :grid, :player
+
+    def easy_mode?
+      @easy_mode
+    end
 
     def [](x, y)
       grid[y][x]
@@ -40,14 +45,19 @@ module DaBomb
     def render(drawing_context, frame_delta)
       drawing_context.clear
 
-      solved = player.moves < TIMER
+      solved  = player.moves < TIMER
+      visible = player.visible_xys
       grid.each_with_index do |row, y|
         row.each_with_index do |tile, x|
           if player.x == x && player.y == y
             drawing_context.draw(player)
           else
             solved = false if tile.walkable? && tile.contents.is_a?(Bomb)
-            drawing_context.draw(tile)
+            if easy_mode? || visible.include?([x, y]) || player.moves >= TIMER
+              drawing_context.draw(tile)
+            else
+              drawing_context.draw(" ")
+            end
           end
         end
         drawing_context.draw("\n")
