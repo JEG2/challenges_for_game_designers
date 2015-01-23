@@ -11,8 +11,10 @@ module DaBomb
       @last_redraw        = nil
     end
 
-    attr_reader :drawing_context, :screen, :seconds_per_update, :last_redraw
-    private     :drawing_context, :screen, :seconds_per_update, :last_redraw
+    attr_accessor :screen
+
+    attr_reader :drawing_context, :seconds_per_update, :last_redraw
+    private     :drawing_context, :seconds_per_update, :last_redraw
 
     def tick
       elapsed = last_redraw.nil? ? seconds_per_update : Time.now - last_redraw

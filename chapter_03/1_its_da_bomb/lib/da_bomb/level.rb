@@ -1,5 +1,7 @@
 require_relative "player"
 require_relative "tile"
+require_relative "string_drawing_context"
+require_relative "explosion_screen"
 
 module DaBomb
   class Level
@@ -25,13 +27,20 @@ module DaBomb
     end
 
     def update
-      player.update
+      if player.moves < TIMER
+        player.update
+      else
+        drawing_context = StringDrawingContext.new
+        self.message    = "BOOM!!!"
+        render(drawing_context, 0.0)
+        game.screen = ExplosionScreen.new(game, drawing_context.to_s)
+      end
     end
 
     def render(drawing_context, frame_delta)
       drawing_context.clear
 
-      solved = true
+      solved = player.moves < TIMER
       grid.each_with_index do |row, y|
         row.each_with_index do |tile, x|
           if player.x == x && player.y == y
