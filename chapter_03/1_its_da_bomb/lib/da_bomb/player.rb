@@ -1,4 +1,7 @@
 require_relative "keyboard"
+require_relative "container"
+require_relative "item_combiner"
+require_relative "item_user"
 require_relative "tile"
 
 module DaBomb
@@ -16,6 +19,8 @@ module DaBomb
       ?q     => :quit,
       ?\C-c  => :interrupt
     }
+
+    include Container
 
     def initialize(level, x, y)
       @level    = level
@@ -48,15 +53,50 @@ module DaBomb
     def move_west;  move(x - 1, y,     :west)  end
 
     def move(to_x, to_y, new_facing)
-      if level[to_x, to_y].is_a?(Floor)
-        @x      = to_x
-        @y      = to_y
-        @moves += 1
-        level.message = nil
+      to       = level[to_x, to_y]
+      combiner = ItemCombiner.new(self, to)
+      if can_enter?(to, combiner)
+        @x            = to_x
+        @y            = to_y
+        @moves       += 1
+        level.message = handle_item(to, combiner)
+      elsif (user = ItemUser.new(self, to)).can_use?
+        level.message = user.use
       else
-        level.message = "You can't go that way."
+        level.message = feedback(to)
       end
       @facing = new_facing
+    end
+
+    def can_enter?(tile, combiner)
+      tile.walkable? &&
+      ( (!tile.contents? || (tile.contents.carryable? && !contents?)) ||
+        combiner.can_combine? )
+    end
+
+    def handle_item(floor, combiner)
+      combiner.can_combine? ? combiner.combine : pickup_item(floor)
+    end
+
+    def pickup_item(floor)
+      if floor.contents?
+        self.contents  = floor.contents
+        floor.contents = nil
+      end
+    end
+
+    def feedback(tile)
+      if tile.walkable? && tile.contents? && !tile.contents.carryable?
+        "There's a #{tile.contents.name}."
+      elsif tile.is_a?(Door)
+        if tile.sealed?
+          "You're sealed in."
+        else
+          "The door is locked."
+        end
+      else
+        "You can't go that way."
+      end
     end
 
     def quit
@@ -67,4 +107,6 @@ module DaBomb
       fail Interrupt
     end
   end
+
+  Floor::SYMBOLS << Player::SYMBOL  # make the Player appear on a Floor tile
 end
